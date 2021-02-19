@@ -35,9 +35,9 @@
  *  首页-知识-限时免费（连续7天阶梯激励）
  *  首页-积分商城-10分精彩看视频得积分-三只松鼠 [支付页]
  * 节日类
- *  首页-牛气-秒杀抢兑
- *  首页-牛气-转盘抽奖
- *  首页-牛气-场馆领牛气
+ *  首页-牛气-秒杀抢兑 [活动取消]
+ *  首页-牛气-转盘抽奖 [活动取消]
+ *  首页-牛气-场馆领牛气 [活动取消]
  *
  *
  *
@@ -355,40 +355,40 @@ var start = async (params) => {
   // await require('./integral').getCoins(request, options)
   /***
   // 首页-牛气-秒杀抢兑
-  await scheduler.regTask(
-    "NiujieSpikePrize",
-    async (request) => {
-      await require("./Niujie").spikePrize(request, options);
-    },
-    {
-      ...taskOption,
-      startTime: 9.6 * 3600,
-      ignoreRelay: true,
-    }
-  );
+  //await scheduler.regTask(
+  //  "NiujieSpikePrize",
+  //  async (request) => {
+  //    await require("./Niujie").spikePrize(request, options);
+  //  },
+  //  {
+  //    ...taskOption,
+  //    startTime: 9.6 * 3600,
+  //    ignoreRelay: true,
+  //  }
+  //);
 
   // 首页-牛气-转盘抽奖
-  await scheduler.regTask(
-    "NiujieTask",
-    async (request) => {
-      await require("./Niujie").doTask(request, options);
-    },
-    taskOption
-  );
+  //await scheduler.regTask(
+  //  "NiujieTask",
+  //  async (request) => {
+  //    await require("./Niujie").doTask(request, options);
+  //  },
+  //  taskOption
+  //);
 
   // 首页-牛气-场馆领牛气
-  await scheduler.regTask(
-    "NiujieReceiveCalf",
-    async (request) => {
-      await require("./Niujie").receiveCalf(request, options);
-    },
-    {
-      isCircle: true,
-      intervalTime: 1 * 3600,
-      startTime: 1,
-      ...taskOption,
-    }
-  );
+  //await scheduler.regTask(
+  //  "NiujieReceiveCalf",
+  //  async (request) => {
+  //    await require("./Niujie").receiveCalf(request, options);
+  //  },
+  //  {
+  //    isCircle: true,
+  //    intervalTime: 1 * 3600,
+  //    startTime: 1,
+  //    ...taskOption,
+  //  }
+  //);
 ***/
   //首页-签到有礼-聚宝盆 [广告图]
   await scheduler.regTask(
