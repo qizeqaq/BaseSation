@@ -14,7 +14,7 @@ String.prototype.replaceWithMask = function (start, end) {
 
 const randomDate = (options) => {
   let startDate = moment();
-  let endDate = moment().endOf("days").subtract(2, "hours");
+  let endDate = moment().endOf("days").subtract(5, "hours");
   if (options && options.startHours) {
     startDate = moment().startOf("days").add(options.startHours, "hours");
   }
@@ -250,6 +250,9 @@ let scheduler = {
       //   await delCookiesFile([command, scheduler.taskKey].join("_"));
       // }
       // 初始化处理
+      if (process.env.GITHUB_ACTIONS) {
+        return;
+      }
       let init_funcs = {};
       let init_funcs_result = {};
       for (let task of will_tasks) {
@@ -360,6 +363,11 @@ let scheduler = {
       }
       await queue.onIdle();
     } else {
+      console.log(
+        `👇 获取总任务数${taskJson.queues.length}，已完成任务数${
+          queues.filter((q) => q.taskState === 1).length
+        }，截至当前可执行任务数${will_tasks.length}`
+      );
       console.log("⭕ 暂无需要执行的任务");
     }
   },

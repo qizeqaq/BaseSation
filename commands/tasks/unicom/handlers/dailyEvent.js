@@ -1,10 +1,11 @@
 const useragent = require("./myPhone").useragent;
 let AES = require("./PAES");
-
 /**
- * @param {String} url request url absolute path
+ *
+ * @param {*} url request url absolute path
+ * @param {*} cnf = {base 平台类别[msmds,]如果是自身平台无需参数绑定
  */
-let getOpenPlatLine = (url, cnf = { base: "" }) => {
+let getOpenPlatLine = (url, cnf = { base: "" }, cb = function () {}) => {
   return async (axios, options) => {
     let searchParams = {};
     let result = await axios
@@ -44,6 +45,7 @@ let getOpenPlatLine = (url, cnf = { base: "" }) => {
     switch (cnf.base) {
       case "msmds":
         console.log("🐱‍🏍 msmds游戏调度");
+        cb({ ecs_token, searchParams, jar1 });
         return { ecs_token, searchParams, jar1 };
       default:
         console.log("🐱‍🏍 平台游戏调度");
@@ -52,6 +54,7 @@ let getOpenPlatLine = (url, cnf = { base: "" }) => {
           throw new Error("jfid缺失");
         }
         jfid = jfid.value;
+        cb({ ecs_token, searchParams, jar1 });
         return { jfid, searchParams, jar1 };
     }
   };
@@ -141,7 +144,46 @@ let postFreeLogin = (referer, freeLoginID) => {
     return { activity, Authorization, freeTimes, advertTimes };
   };
 };
-
+let postFreeLoginGuessWithCallBack = (
+  referer,
+  freeLoginID,
+  callback = null
+) => {
+  return async (axios, options, { jfid, searchParams, jar1 }) => {
+    let params = {
+      activityId: freeLoginID,
+      userCookie: jfid,
+      userNumber: searchParams.userNumber,
+      time: new Date().getTime(),
+    };
+    let reqdata = encodeParams(params, false);
+    let res = await axios
+      .request({
+        baseURL: "https://m.jf.10010.com/",
+        headers: {
+          "user-agent": useragent(options),
+          Authorization: "Bearer null",
+          referer,
+          origin: "https://img.jf.10010.com",
+          "Content-Type": "application/json",
+        },
+        jar: jar1,
+        url: `/jf-yuech/p/freeLoginGuess`,
+        method: "post",
+        data: reqdata,
+      })
+      .catch((err) => console.log(err));
+    let result = res.data;
+    if (result.code !== 0) {
+      throw new Error(result.message);
+    }
+    // let activity, Authorization, freeTimes, advertTimes;
+    if (typeof callback === "function") {
+      result = callback(result);
+    }
+    return result;
+  };
+};
 let lookVideoDoubleResult = (title) => {
   return async (axios, options) => {
     let { Authorization, activityId, winningRecordId } = options;
@@ -161,6 +203,52 @@ let lookVideoDoubleResult = (title) => {
     } else {
       console.log(`⭕ ${title}翻倍结果:`, result.data);
     }
+  };
+};
+/**
+ *
+ * @param {json} params1 https://m.client.10010.com/taskcallback/taskfilter/query
+ * @param {*} params2 https://m.client.10010.com/taskcallback/taskfilter/dotasks
+ * @param {*} title
+ */
+let lookVideoDouble = (params1, params2, title) => {
+  console.log(`😒 ${title}游玩开始翻倍`);
+  return async (axios, options) => {
+    params1["sign"] = AES.sign([
+      params1.arguments1,
+      params1.arguments2,
+      params1.arguments3,
+      params1.arguments4,
+    ]);
+    let { num, jar } = await require("../taskcallback").query(axios, {
+      ...options,
+      params: params1,
+    });
+
+    if (!num) {
+      console.log(`签到小游戏${title}: 今日已完成`);
+      return;
+    }
+
+    do {
+      console.log("🎞 看视频第", num, "次");
+      params2["sign"] = AES.sign([
+        params2.arguments1,
+        params2.arguments2,
+        params2.arguments3,
+        params2.arguments4,
+      ]);
+      await require("../taskcallback").doTask(axios, {
+        ...options,
+        params: params2,
+        jar,
+      });
+      if (num) {
+        console.log("等待15秒再继续");
+        // eslint-disable-next-line no-unused-vars
+        await new Promise((resolve, reject) => setTimeout(resolve, 15 * 1000));
+      }
+    } while (--num);
   };
 };
 
@@ -192,4 +280,6 @@ module.exports = {
   postFreeLogin,
   lookVideoDoubleResult,
   encodeParams,
+  lookVideoDouble,
+  postFreeLoginGuessWithCallBack,
 };
