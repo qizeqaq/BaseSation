@@ -52,7 +52,7 @@ let scheduler = {
     for (let taskName of taskNames) {
       let options = tasks[taskName].options;
       let willTime = moment(randomDate(options));
-      let waitTime = options.dev ? 0 : Math.floor(Math.random() * 600);
+      let waitTime = options.dev ? 0 : Math.floor(Math.random() * 60);
       if (options) {
         if (options.isCircle || options.dev) {
           willTime = moment().startOf("days");
@@ -250,9 +250,9 @@ let scheduler = {
       //   await delCookiesFile([command, scheduler.taskKey].join("_"));
       // }
       // 初始化处理
-      if (process.env.GITHUB_ACTIONS) {
-        return;
-      }
+      //if (process.env.GITHUB_ACTIONS) {
+      //  return;
+      //}
       let init_funcs = {};
       let init_funcs_result = {};
       for (let task of will_tasks) {
