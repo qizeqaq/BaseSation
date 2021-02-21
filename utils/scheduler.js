@@ -150,8 +150,8 @@ let scheduler = {
       dir,
       `taskFile_${command}_${scheduler.taskKey.replaceWithMask(2, 3)}.json`
     );
-    scheduler.today = moment().format("YYYYMMDD");
-    console.log("获得配置文件", maskFile, "当前日期", scheduler.today);
+    scheduler.today = moment().format("YYYY-MM-DD HH:mm:ss");
+    console.log("获得配置文件", maskFile, "当前时间", scheduler.today);
   },
   loadTasksQueue: async () => {
     let queues = [];
