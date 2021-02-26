@@ -14,7 +14,7 @@ String.prototype.replaceWithMask = function (start, end) {
 
 const randomDate = (options) => {
   let startDate = moment();
-  let endDate = moment().endOf("days").subtract(15, "hours");
+  let endDate = moment().endOf("days").subtract(5, "hours");
   if (options && options.startHours) {
     startDate = moment().startOf("days").add(options.startHours, "hours");
   }
@@ -27,6 +27,7 @@ const randomDate = (options) => {
       Math.random() * (endDate.toDate() - startDate.toDate())
   );
 };
+
 let tasks = {};
 let scheduler = {
   taskFile: path.join(os.homedir(), ".AutoSignMachine", "taskFile.json"),
@@ -58,7 +59,9 @@ let scheduler = {
           willTime = moment().startOf("days");
         }
         if (options.startTime) {
-          willTime = moment().startOf("days").add(options.startTime, "seconds");
+          willTime = moment()
+            .startOf("days")
+            .add(options.startTime, "seconds");
         }
         if (options.ignoreRelay) {
           waitTime = 0;
@@ -113,8 +116,20 @@ let scheduler = {
       }
 
       if (taskJson.queues.length !== Object.keys(tasks).length) {
-        console.log("📑 数量已变更，重新生成任务配置");
+        console.log("📑 任务数量已变更，重新调整任务配置");
         let queues = await scheduler.buildQueues();
+
+        for (let child of queues) {
+          for (let taskChild of taskJson.queues) {
+            if (child.taskName === taskChild.taskName) {
+              child.taskState = taskChild.taskState;
+              child.willTime = taskChild.willTime;
+              child.waitTime = taskChild.waitTime;
+              break;
+            }
+          }
+        }
+
         fs.writeFileSync(
           scheduler.taskFile,
           JSON.stringify({
@@ -152,8 +167,8 @@ let scheduler = {
         dir,
         `taskFile_${command}_${scheduler.taskKey.replaceWithMask(2, 3)}.json`
       );
-      scheduler.today = moment().format("YYYYMMDD");
-      console.log("获得配置文件", maskFile, "当前日期", scheduler.today);
+      scheduler.today = moment().format("YYYY-MM-DD HH:mm:ss");
+        console.log("获得配置文件", maskFile, "当前时间", scheduler.today);
       resolve();
     });
   },
@@ -199,7 +214,7 @@ let scheduler = {
   },
   hasWillTask: async (command, params) => {
     const { taskKey, tryrun } = params;
-    scheduler.clean();
+    await scheduler.clean();
     scheduler.isTryRun = tryrun;
     scheduler.taskKey = taskKey || "default";
     console.log(
@@ -254,7 +269,8 @@ let scheduler = {
       (task) =>
         task.taskName in tasks &&
         (!selectedTasks.length ||
-          (selectedTasks.length && selectedTasks.indexOf(task.taskName) !== -1))
+          (selectedTasks.length &&
+            selectedTasks.indexOf(task.taskName) !== -1))
     );
 
     switch (scheduler.getTaskStatus()) {
@@ -362,9 +378,9 @@ let scheduler = {
                   .update(tttOptions.init.toString())
                   .digest("hex");
                 if (!(hash in init_funcs)) {
-                  init_funcs_result[task.taskName + "_init"] = await tttOptions[
-                    "init"
-                  ](request, savedCookies);
+                  init_funcs_result[
+                    task.taskName + "_init"
+                  ] = await tttOptions["init"](request, savedCookies);
                   init_funcs[hash] = task.taskName + "_init";
                 } else {
                   init_funcs_result[task.taskName + "_init"] =
@@ -466,45 +482,8 @@ let scheduler = {
         console.log("⭕ 暂无需要执行的任务");
     }
   },
-  pushTaskQueue: async (command, selectedTasks) => {
-    let init_funcs = {};
-    let init_funcs_result = {};
-    for (let task of selectedTasks) {
-      let ttt = tasks[task.taskName];
-      let tttOptions = ttt.options || {};
-      let savedCookies =
-        getCookies([command, scheduler.taskKey].join("_")) ||
-        tttOptions.cookies;
-      let request = _request(savedCookies);
-
-      if (tttOptions.init) {
-        if (
-          Object.prototype.toString.call(tttOptions.init) ===
-          "[object AsyncFunction]"
-        ) {
-          let hash = crypto
-            .createHash("md5")
-            .update(tttOptions.init.toString())
-            .digest("hex");
-          if (!(hash in init_funcs)) {
-            init_funcs_result[task.taskName + "_init"] = await tttOptions[
-              "init"
-            ](request, savedCookies);
-            init_funcs[hash] = task.taskName + "_init";
-          } else {
-            init_funcs_result[task.taskName + "_init"] =
-              init_funcs_result[init_funcs[hash]];
-          }
-        } else {
-          console.log("not apply");
-        }
-      } else {
-        init_funcs_result[task.taskName + "_init"] = { request };
-      }
-    }
-    return { init_funcs_result, init_funcs };
-  },
 };
+
 module.exports = {
   scheduler,
 };
