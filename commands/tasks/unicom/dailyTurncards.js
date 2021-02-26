@@ -20,14 +20,19 @@ let dailyTurncards = {
       ...cookies,
       phone,
     });
-    await dailyTurncards.doElementTask(axios, options, {
-      ...cookies,
-      phone,
-    });
-    await dailyTurncards.doMeituanTask(axios, options, {
-      ...cookies,
-      phone,
-    });
+    //todo：判定40积分? 没找到API
+    try {
+      await dailyTurncards.doElementTask(axios, options, {
+        ...cookies,
+        phone,
+      });
+      await dailyTurncards.doMeituanTask(axios, options, {
+        ...cookies,
+        phone,
+      });
+    } catch (err) {
+      console.log(err);
+    }
   },
   doMeituanTask: async (axios, options, { ecs_token, jar1, phone }) => {
     let request = new UnicomRequest(axios, options);
@@ -113,26 +118,13 @@ let dailyTurncards = {
 
     // console.log(result.data);
     if (result.data.code !== 200) {
-      throw new Error("❌ something errors: ", result.data.msg);
-    }
-    result = await request.postMsmds(
-      "https://wxapp.msmds.cn/jplus/h5/unicomTask/doTask",
-      {
-        phone: phone,
-        type: 6,
-        token: ecs_token,
-      },
-      {
-        referer: ` https://jxbwlsali.kuaizhan.com/0/51/p721841247bc5ac?phone=${options.user}`,
-        origin: "https://jxbwlsali.kuaizhan.com",
-        "Content-Type": "application/x-www-form-urlencoded",
+      if (result.data.code === 502) {
+        console.log("后台检测到非法请求，需要验证码。");
+        return;
       }
-    );
-
-    // console.log(result.data);
-    if (result.data.code !== 200) {
       throw new Error("❌ something errors: ", result.data.msg);
     }
+
     console.log("开优惠券");
     result = await request.postMsmds(
       "https://wxapp.msmds.cn/jplus/h5/unicomTask/receiveDouling",
@@ -321,6 +313,10 @@ let dailyTurncards = {
 
     // console.log(result.data);
     if (result.data.code !== 200) {
+      if (result.data.code === 502) {
+        console.log("后台检测到非法请求，需要验证码。");
+        return;
+      }
       throw new Error("❌ something errors: ", result.data.msg);
     }
     console.log("开优惠券");
