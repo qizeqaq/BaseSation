@@ -14,7 +14,7 @@ String.prototype.replaceWithMask = function (start, end) {
 
 const randomDate = (options) => {
   let startDate = moment();
-  let endDate = moment().endOf("days").subtract(5, "hours");
+  let endDate = moment().endOf("days").subtract(15, "hours");
   if (options && options.startHours) {
     startDate = moment().startOf("days").add(options.startHours, "hours");
   }
@@ -52,7 +52,7 @@ let scheduler = {
     for (let taskName of taskNames) {
       let options = tasks[taskName].options;
       let willTime = moment(randomDate(options));
-      let waitTime = options.dev ? 0 : Math.floor(Math.random() * 600);
+      let waitTime = options.dev ? 0 : Math.floor(Math.random() * 60);
       if (options) {
         if (options.isCircle || options.dev) {
           willTime = moment().startOf("days");
