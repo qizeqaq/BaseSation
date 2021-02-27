@@ -35,9 +35,9 @@
  *  首页-知识-限时免费（连续7天阶梯激励）
  *  首页-积分商城-10分精彩看视频得积分-三只松鼠 [支付页]
  * 节日类
- *  首页-牛气-秒杀抢兑 [活动取消]
- *  首页-牛气-转盘抽奖 [活动取消]
- *  首页-牛气-场馆领牛气 [活动取消]
+ *  首页-牛气-秒杀抢兑
+ *  首页-牛气-转盘抽奖
+ *  首页-牛气-场馆领牛气
  *
  *
  *
@@ -180,6 +180,7 @@ var start = async (params) => {
       await require("./dailyVideoFreeGoods").doTask(request, options);
     },
     {
+      ...taskOption,
       isCircle: true,
       startTime: 10 * 3600,
       intervalTime: 4 * 3600,
@@ -200,6 +201,15 @@ var start = async (params) => {
     "jflottery",
     async (request) => {
       await require("./jflottery").doTask(request, options);
+    },
+    taskOption
+  );
+
+  ///666积分补全。。。。
+  await scheduler.regTask(
+    "jflotteryad",
+    async (request) => {
+      await require("./jflotteryad.js").doTask(request, options);
     },
     taskOption
   );
@@ -469,6 +479,28 @@ var start = async (params) => {
       await require("./dailyTurncards.js").doTask(request, options);
     },
     taskOption
+  );
+  
+    // 首页-签到有礼-饿了么红包
+  await scheduler.regTask(
+    "fapiao",
+    async (request) => {
+      await require("./fapiao.js").doTask(request, options);
+    },
+    taskOption
+  );
+
+  //积分查询
+  await scheduler.regTask(
+    "fetchCoins",
+    async (request) => {
+      await require("./fetchCoins.js").doTask(request, options);
+    },
+    {
+      ...taskOption,
+      startTime: 21 * 3600,
+      ignoreRelay: true,
+    }
   );
 };
 module.exports = {
